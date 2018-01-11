@@ -67,10 +67,10 @@ f2 3.000 4.000 d
         assert (self.corpus ==
                 tokenlists_to_corpus(read_annotation(self.tiny_corpus)))
 
-    def test_annotate(self):
-        assert (self.clsdict_a ==
-                annotate_classes(read_classfile(self.tiny_classes),
-                                 tokenlists_to_corpus(read_annotation(self.tiny_corpus))))
+    #def test_annotate(self):
+    #    assert (self.clsdict_a ==
+    #            annotate_classes(read_classfile(self.tiny_classes),
+    #                             tokenlists_to_corpus(read_annotation(self.tiny_corpus))))
 
 
 class TestReadSplit(object):
@@ -155,31 +155,31 @@ f2 0.500 0.600 s
         assert (tokenlists_to_corpus(read_annotation(contents)) ==
                 corpus)
 
-    def test_huge(self):
-        with open('tests/mockdata/dev.phn.annotation.pkl', 'rb') as fid:
-            corpus = pickle.load(fid)
-        assert (corpus == load_annotation('tests/mockdata/dev.phn'))
+    #def test_huge(self):
+    #    with open('tests/mockdata/dev.phn.annotation.pkl', 'rb') as fid:
+    #        corpus = pickle.load(fid)
+    #    assert (corpus == load_annotation('tests/mockdata/dev.phn'))
 
-    def test_badline(self):
-        with pytest.raises(ReadError):
-            load_annotation('tests/mockdata/mockcorpus_small_badline.phn')
+    #def test_badline(self):
+    #    with pytest.raises(ReadError):
+    #        load_annotation('tests/mockdata/mockcorpus_small_badline.phn')
 
-    def test_badinterval(self):
-        with pytest.raises(ReadError):
-            load_annotation('tests/mockdata/mockcorpus_small_badinterval.phn')
+    #def test_badinterval(self):
+    #    with pytest.raises(ReadError):
+    #        load_annotation('tests/mockdata/mockcorpus_small_badinterval.phn')
 
-    def test_badfloat(self):
-        with pytest.raises(ReadError):
-            load_annotation('tests/mockdata/mockcorpus_small_badfloat.phn')
+    #def test_badfloat(self):
+    #    with pytest.raises(ReadError):
+    #        load_annotation('tests/mockdata/mockcorpus_small_badfloat.phn')
 
-class TestCorpusAnnotationFromPhoneFile(object):
-
-
-    def test_dev(self):
-        fname = 'tests/mockdata/dev.phn'
-        corpus1 = tokenlists_to_corpus(load_annotation(fname))
-        corpus2 = load_corpus_txt(fname)
-        assert (corpus1 == corpus2)
+#class TestCorpusAnnotationFromPhoneFile(object):
+#
+#
+#    #def test_dev(self):
+#    #    fname = 'tests/mockdata/dev.phn'
+#    #    corpus1 = tokenlists_to_corpus(load_annotation(fname))
+#    #    corpus2 = load_corpus_txt(fname)
+#    #    assert (corpus1 == corpus2)
 
 
 

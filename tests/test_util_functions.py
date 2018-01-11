@@ -2,9 +2,9 @@ import pytest
 
 from tde.util.functions import unique, intersection, fname2speaker
 
-@pytest.mark.randomize(it=pytest.list_of(str))
-def test_unique(it):
-    assert (sorted(list(unique(it))) == sorted(list(set(it))))
+#@pytest.mark.randomize(it=pytest.list_of(str))
+#def test_unique(it):
+#    assert (sorted(list(unique(it))) == sorted(list(set(it))))
 
 def test_intersection():
     it1 = range(20)

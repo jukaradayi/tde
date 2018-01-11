@@ -1,6 +1,6 @@
 import pytest
 
-from pytest import list_of
+#from pytest import list_of
 
 from tde.data.sets import typeset, freqs, weights
 from tde.data.fragment import FragmentToken
