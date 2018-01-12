@@ -15,5 +15,3 @@ To build a frozen version::
   $ python setup_freeze.py build_exe
   $ python move_build.py CORPUS OUTPUTDIR
   
-To test::
-  $ pytest tests/
