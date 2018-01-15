@@ -1,8 +1,6 @@
-cython>=0.20.1
-scipy>=0.14.0
-numpydoc
-mock
-pytest>=2.6
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: linux-64
 mkl=2017.0.3=0
 numpy=1.13.1=py27_0
 openssl=1.0.2l=0
