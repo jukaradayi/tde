@@ -5,3 +5,5 @@ scipy>=0.14.0
 numpydoc
 mock
 pytest>=2.6
+intervaltree
+ipdb
