@@ -7,3 +7,4 @@ mock
 pytest>=2.6
 intervaltree
 ipdb
+joblib
