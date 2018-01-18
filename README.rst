@@ -1,8 +1,8 @@
+[![Build Status](https://travis-ci.org/jukaradayi/tde.svg?branch=master)](https://travis-ci.org/jukaradayi/tde)
 ===============================
 Term Discovery Evaluation
 ===============================
 
-[![Build Status](https://api.travis-ci.org/jukaradayi/tde.svg?branch=master)](https://travis-ci.org/jukaradayi/tde)
 DESCRIPTION
 
 * Free software: GPLv3 license
