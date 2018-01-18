@@ -26,9 +26,10 @@ install:
   - source activate TDE
   # Install remaining dependencies with pip 
   - pip install -r pip-requirements.txt
-  - ls /home/travis/build/jukaradayi/tde/tde/substrings/
   - python setup.py build
+  - ls /home/travis/build/jukaradayi/tde/tde/substrings/
   - python setup.py install
+  - ls /home/travis/build/jukaradayi/tde/tde/substrings/
 
 # command to run tests, e.g. python setup.py test
 script: 
