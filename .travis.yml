@@ -26,9 +26,9 @@ install:
   - source activate TDE
   # Install remaining dependencies with pip 
   - pip install -r pip-requirements.txt
+  - ls /home/travis/build/jukaradayi/tde/tde/substrings/
   - python setup.py build
   - python setup.py install
-  - python -c "import tde.substrings.ccss"
 
 # command to run tests, e.g. python setup.py test
 script: 
