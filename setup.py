@@ -15,7 +15,7 @@ except ImportError:
     from distutils.extension import Extension
 
 
-readme = open('README.rst').read()
+readme = open('README.md').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 requirements = [
