@@ -1,0 +1,16 @@
+# gold files
+export PHON_GOLD=./resources/mandarin.phn
+#export CLASS_GOLD=./resources/mandarin.gold
+#export PHON_GOLD=./resources/buckeye.phn
+#export PHON_GOLD=./resources/buckeye_noSIL.phn
+#export PHON_GOLD=./resources/french.phn
+#export CLASS_GOLD=./resources/french.classes
+#export PHON_GOLD=./test/mock.phn
+#export PHON_GOLD=./resources/english.phn
+#export CLASS_GOLD=./resources/english.classes
+#export PHON_GOLD=./resources/LANG2.phn
+#export CLASS_GOLD=./resources/LANG2.classes
+#export PHON_GOLD=./resources/LANG1.phn
+#export CLASS_GOLD=./resources/LANG1.classes
+#source activate cscores 
+

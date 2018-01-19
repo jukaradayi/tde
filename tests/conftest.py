@@ -3,6 +3,9 @@
 
 import os
 import pytest
+import tde
+print(tde.__file__)
+import tde.util
 from tde.util.reader import tokenlists_to_corpus, read_annotation, annotate_classes, read_classfile, read_split_single
 from tde.eval_track2 import load_disc ### TODO MOVE LOAD DISC TO UTIL
 _word = '''s0101a 32.217 32.554 okay

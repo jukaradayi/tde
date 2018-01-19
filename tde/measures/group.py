@@ -18,6 +18,7 @@ from __future__ import division
 from pprint import pformat
 
 import numpy as np
+import ipdb
 
 from tde.data.sets import Pclus_single, Pgoldclus, typeset, weights, nmatch
 from tde.util.printing import verb_print, banner, pretty_pairs
@@ -106,7 +107,6 @@ def evaluate_group(disc_clsdict, verbose=False, debug=False):
 
     ws_disc = make_weights(pclus, verbose, debug)
     ws_gold = make_weights(pgoldclus, verbose, debug)
-
     if len(pclus_nmatch) == 0:
         prec = np.nan
     else:

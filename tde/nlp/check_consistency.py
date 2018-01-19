@@ -96,16 +96,17 @@ def create_silence_tree(vad_file):
 
     return silence_tree
 
-def parse_class_file(class_file, silence_tree):
+def parse_class_file(class_file, silence_tree, output, verbose=False):
     """Create list of all the intervals found"""
     
     assert os.path.isfile(class_file), "ERROR: class file not found"
     
+    n_trimmed = 0 # count the number of intervals trimmed
+
     intervals_list = defaultdict(list)
     # Read Class file. Keep lines if they're not blank and 
     # don't start by "Class", because those are the ones 
     # that contain the found intervals.
-    output = "./"
     with open(class_file, 'r') as fin:
         classes = fin.readlines()
         output_class = []
@@ -125,23 +126,36 @@ def parse_class_file(class_file, silence_tree):
 
             # Check in which category the overlap is:
             if len(ov) > 0 :
-                on, off = check_intervals_found(ov, float(on), float(off))
+                new_on, new_off = check_intervals_found(ov,
+                                                        float(on),
+                                                        float(off))
+                if (new_on, new_off) != (float(on), float(off)):
+                    n_trimmed += 1
+                    if verbose:
+                        print("interval({}, {}, {}) has been trimmed to"\
+                          " ({}, {}, {}) to remove"\
+                          " overlap with silence".format(fname, on, off,
+                                                         fname, new_on,
+                                                         new_off))
+                on, off = new_on, new_off
+                
             if on == -1 and off == -1:
-                print("ERROR, interval {} contains completely"
-                      " a Silence. Please treat interval accordingly"
-                      " and check again.".format(
-                       line))
-                exit()
+                raise ValueError("ERROR, a Silence is in the middle of "
+                        "interval {}. This means the system didn't use the "
+                        " VAD. Please treat interval accordingly, so that "
+                        "no more intervals in your class file contain"
+                        " silences and check again.".format(
+                            line))
             output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
 
-    print("Check successful")
+    print("Check successful, {} intervals were trimmed".format(n_trimmed))
     
     # write class file without Silences
     output_name = os.path.join(output,
                                os.path.basename(class_file) + "_no_SIL")
                                 
     write_new_class_file(output_class, output_name)
-    return output_class
+    return output_name
 
 def write_new_class_file(output_class, output_name):
     """ Write Class File in which Silences were removed """

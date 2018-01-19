@@ -14,11 +14,13 @@ VERSION = "0.2.1"
 
 from tde.util.reader import load_classes_txt, load_corpus_txt, load_split
 from tde.util.printing import verb_print, banner, pretty_score_f, \
-    pretty_score_nlp
+    pretty_score_nlp, pretty_score_ned_cov, pretty_score
 from tde.util.splits import truncate_intervals, check_intervals
 from tde.util.functions import fscore
 
-#from tde.measures.nlp import NED, coverage
+from tde.nlp.check_consistency import create_silence_tree, parse_class_file
+from tde.nlp.compute_ned import ned_from_class
+from tde.nlp.compute_cov import cov_from_class
 from tde.measures.group import evaluate_group
 from tde.measures.boundaries import Boundaries, eval_from_bounds
 #from tde.measures.match import eval_from_psets, make_pdisc, make_pgold, \
@@ -99,56 +101,6 @@ def load_disc(fname, corpus, split_file, truncate, verbose):
     return disc
 
 
-#def _match_sub(disc_clsdict, gold_clsdict, phn_corpus, names, label,
-#               verbose, n_jobs):
-#    em = eval_from_psets
-#    if verbose:
-#        print '  matching ({2}): subsampled {0} files in {1} sets'\
-#            .format(sum(map(len, names)), len(names), label)
-#    with verb_print('  matching ({0}): prepping psets'.format(label),
-#                             verbose, True, True, True):
-#        pdiscs = [make_pdisc(disc_clsdict.restrict(fs, True),
-#                             False, False)
-#                  for fs in names]
-#        pgolds = [make_pgold(gold_clsdict.restrict(fs, True),
-#                             False, False)
-#                  for fs in names]
-#        psubs = [make_psubs(disc_clsdict.restrict(fs, True),
-#                            phn_corpus, 3, 20, False, False)
-#                 for fs in names]
-#    with verb_print('  matching ({0}): calculating scores'
-#                             .format(label), verbose, False, True, False):
-#        tp, tr = izip(*Parallel(n_jobs=n_jobs,
-#                                verbose=5 if verbose else 0,
-#                                pre_dispatch='n_jobs')
-#                      (delayed(em)(pdisc, pgold, psub)
-#                      for pdisc, pgold, psub in zip(pdiscs, pgolds, psubs)))
-#    tp, tr = np.fromiter(tp, dtype=np.double), np.fromiter(tr, dtype=np.double)
-#    tp, tr = praggregate(tp, tr)
-#    return tp, tr
-#
-#
-#def match(disc_clsdict, gold_clsdict, phn_corpus,
-#          fragments_within, fragments_cross,
-#          dest, verbose, n_jobs):
-#    if verbose:
-#        print banner('MATCHING')
-#    pc, rc = _match_sub(disc_clsdict, gold_clsdict, phn_corpus,
-#                        fragments_cross, 'cross', verbose, n_jobs)
-#    fc = np.fromiter((fscore(pc[i], rc[i]) for i in xrange(pc.shape[0])), dtype=np.double)
-#
-#    pw, rw = _match_sub(disc_clsdict, gold_clsdict, phn_corpus,
-#                        fragments_within, 'within', verbose, n_jobs)
-#    fw = np.fromiter((fscore(pw[i], rw[i]) for i in xrange(pw.shape[0])), dtype=np.double)
-#    with open(path.join(dest, 'matching'), 'w') as fid:
-#        fid.write(pretty_score_f(pc, rc, fc, 'match total',
-#                                 len(fragments_cross),
-#                                 sum(map(len, fragments_cross))))
-#        fid.write('\n')
-#        fid.write(pretty_score_f(pw, rw, fw, 'match within-speaker only',
-#                                 len(fragments_within),
-#                                 sum(map(len, fragments_within))))
-
 def _group_sub(disc_clsdict, names, label, verbose, n_jobs):
     eg = evaluate_group
     #if verbose:
@@ -176,13 +128,8 @@ def group(disc_clsdict, fragments_all, dest, verbose, n_jobs):
     #pw, rw = _group_sub(disc_clsdict, fragments_within, 'within', verbose, n_jobs)
     #fw = np.fromiter((fscore(pw[i], rw[i]) for i in xrange(pw.shape[0])), dtype=np.double)
     with open(path.join(dest, 'group'), 'w') as fid:
-        fid.write(pretty_score_f(pc, rc, fc, 'group total',
-                                 len(fragments_all),
+        fid.write(pretty_score(pc, rc, fc, 'group total',
                                  sum(map(len, fragments_all))))
-        #fid.write('\n')
-        #fid.write(pretty_score_f(pw, rw, fw, 'group within-speaker only',
-        #                         len(fragments_within),
-        #                         sum(map(len, fragments_within))))
 
 
 def _token_type_sub(clsdict, wrd_corpus, names, label, verbose, n_jobs):
@@ -214,30 +161,12 @@ def token_type(disc_clsdict, wrd_corpus, fragments_cross,
     ftyc = np.fromiter((fscore(ptyc[i], rtyc[i]) for i in xrange(ptyc.shape[0])),
                        dtype=np.double)
 
-    #ptow, rtow, ptyw, rtyw = _token_type_sub(disc_clsdict, wrd_corpus,
-    #                                         fragments_within, 'within',
-    #                                         verbose, n_jobs)
-    #ftow = np.fromiter((fscore(ptow[i], rtow[i]) for i in xrange(ptow.shape[0])),
-    #                   dtype=np.double)
-    #ftyw = np.fromiter((fscore(ptyw[i], rtyw[i]) for i in xrange(rtyw.shape[0])),
-    #                   dtype=np.double)
     with open(path.join(dest, 'token_type'), 'w') as fid:
-        fid.write(pretty_score_f(ptoc, rtoc, ftoc, 'token total',
-                                 len(fragments_cross),
+        fid.write(pretty_score(ptoc, rtoc, ftoc, 'token total',
                                  sum(map(len, fragments_cross))))
         fid.write('\n')
-        fid.write(pretty_score_f(ptyc, rtyc, ftyc, 'type total',
-                                 len(fragments_cross),
+        fid.write(pretty_score(ptyc, rtyc, ftyc, 'type total',
                                  sum(map(len, fragments_cross))))
-        #fid.write('\n')
-        #fid.write(pretty_score_f(ptow, rtow, ftow, 'token within-speaker only',
-        #                         len(fragments_within),
-        #                         sum(map(len, fragments_within))))
-        #fid.write('\n')
-        #fid.write(pretty_score_f(ptyw, rtyw, ftyw, 'type within-speaker only',
-        #                         len(fragments_within),
-        #                         sum(map(len, fragments_within))))
-
 
 def _boundary_sub(disc_clsdict, corpus, names, label, verbose, n_jobs):
     eb = eval_from_bounds
@@ -268,17 +197,29 @@ def boundary(disc_clsdict, corpus, fragments_cross,
     pc, rc = _boundary_sub(disc_clsdict, corpus, fragments_cross,
                            'cross', verbose, n_jobs)
     fc = np.fromiter((fscore(pc[i], rc[i]) for i in xrange(pc.shape[0])), dtype=np.double)
-    #pw, rw = _boundary_sub(disc_clsdict, corpus, fragments_within,
-    #                       'within', verbose, n_jobs)
-    #fw = np.fromiter((fscore(pw[i], rw[i]) for i in xrange(pw.shape[0])), dtype=np.double)
     with open(path.join(dest, 'boundary'), 'w') as fid:
-        fid.write(pretty_score_f(pc, rc, fc, 'boundary total',
-                                 len(fragments_cross),
+        fid.write(pretty_score(pc, rc, fc, 'boundary total',
                                  sum(map(len, fragments_cross))))
-        #fid.write('\n')
-        #fid.write(pretty_score_f(pw, rw, fw, 'boundary within-speaker only',
-        #                         len(fragments_within),
-        #                         sum(map(len, fragments_within))))
+
+
+def ned_cov(disc_clsfile, transcription, phn_corpus_file, dest, verbose):
+    ''' wrapper around the nlp.compute_ned function, computes ned'''
+    ''' and write output using pretty_score function '''
+    ned_all, w, a, trs = ned_from_class(disc_clsfile,
+                                        transcription,
+                                        phn_corpus_file,
+                                        False)
+    cov, n_overall = cov_from_class(disc_clsfile,
+                                    phn_corpus_file,
+                                    True)
+                        
+
+    with open(path.join(dest, 'ned'), 'w') as fid:
+        fid.write(pretty_score_ned_cov(ned_all, cov, 'all',
+                                    n_overall))
+    with open(path.join(dest, 'transcription.txt'), 'w') as fout:
+        for line in trs:
+            fout.write(u'{}\n'.format(line))
 
 def aggregate(array, default_score=0.):
     array = np.array(array)
@@ -324,8 +265,12 @@ fileID starttime endtime
 """)
         parser.add_argument(
                 'corpus', metavar='CORPUS',
-                choices=['english', 'mandarin', 'french'],
-                help='name of the corpus you are evaluating')
+                choices=['english', 'mandarin', 'french',
+                         'buckeye', 'xitsonga', 'other'],
+                help='name of the corpus you are evaluating. Choices are '
+                     '"english", "mandarin", "french", "buckeye", '
+                     '"xitsonga" and "other" if you want to use '
+                     ' your own corpus')
         parser.add_argument('disc_clsfile', metavar='DISCCLSFILE',
                             nargs=1,
                             help='discovered classes')
@@ -338,6 +283,16 @@ fileID starttime endtime
                             default=True,
                             help='force truncation of discovered fragments '
                             'outside of splits')
+        parser.add_argument('-t', '--transcription',
+                            metavar='TRANSCRIPTION',
+                            default='None',
+                            nargs=2,
+                            help='if corpus choice if "other", -t is needed to'
+                            'get the phone and word transcriptions, as well as'
+                            'the VAD. Example of use is:\n'
+                            '\t-t ../bin/resources mandarin\n'
+                            'where, in ../bin/resources, there is a'
+                            ' mandarin.phn, mandarin.wrd and mandarin.vad')
         parser.add_argument('-m', '--measures',
                             action='store',
                             nargs='*',
@@ -376,11 +331,15 @@ fileID starttime endtime
         # unfrozen
         rdir = path.dirname(path.realpath(__file__))
         resource_dir = path.join(rdir, '../bin/resources')
+    
+    # if corpus is "other", change resource_dir to get the transcriptions/vad
+    if args['corpus'] == 'other':
+        assert os.path.isdir(args['transcription'][0]),\
+               'ERROR: Corpus choice is "other",'\
+               'but transcription folder does not exist'
+        resource_dir = args['transcription'][0]
+        args['corpus'] = args['transcription'][1]
 
-
-    # folds_cross_file  = path.join(resource_dir, '{}.intervals.cross'.format(args['corpus']))
-    # folds_within_file = path.join(resource_dir, '{}.intervals.within'.format(args['corpus']))
-    # gold_clsfile      = path.join(resource_dir, '{}.classes'.format(args['corpus']))
     phn_corpus_file   = path.join(resource_dir, '{}.phn'.format(args['corpus']))
     wrd_corpus_file   = path.join(resource_dir, '{}.wrd'.format(args['corpus']))
     vad_file          = path.join(resource_dir, '{}.vad'.format(args['corpus']))
@@ -413,25 +372,24 @@ fileID starttime endtime
         intervals_vad = [load_split(vad_file,
                                      multiple=False)]
 
-    #with verb_print('  loading folds within',
-    #                         verbose, True, True, True):
-    #    fragments_within = load_split(folds_within_file,
-    #                                  multiple=False)
+    try:
+        os.makedirs(dest)
+    except OSError:
+        pass
+
+    # Before loading the class file, check its consistency.
+    # If intervals that overlaps a little with silence are found,
+    # they are trimmed. If intervals that contain silences are found,
+    # an error is thrown and the evaluation breaks.
+    sil_tree = create_silence_tree(vad_file)
+    disc_clsfile = parse_class_file(disc_clsfile, sil_tree, dest, verbose)
 
     # load discovered intervals and gold intervals
     truncate = args['truncate']
 
     disc_clsdict = load_disc(disc_clsfile, phn_corpus, vad_file,
                              truncate, verbose)
-    #with verb_print('  loading gold classes',
-    #                         verbose, True, True, True):
-    #    gold_clsdict = load_classes_txt(fname, corpus, split=None)
 
-
-    try:
-        os.makedirs(dest)
-    except OSError:
-        pass
 
     with open(path.join(dest, 'VERSION_{0}'.format(VERSION)), 'w') as fid:
         fid.write('')
@@ -447,5 +405,8 @@ fileID starttime endtime
     if do_all or 'boundary' in measures:
         boundary(disc_clsdict, wrd_corpus, intervals_vad,
                  dest, verbose, n_jobs)
+    if do_all or 'nlp' in measures:
+        ned_cov(disc_clsfile, True, phn_corpus_file,
+                dest, verbose)
     if verbose:
         print 'All done. Results stored in {0}'.format(dest)

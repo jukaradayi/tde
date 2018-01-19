@@ -41,6 +41,22 @@ def pretty_score_f(ps, rs, fs, label, nfolds, nsamples):
     r += '{sep}\n'.format(sep=37*'-')
     return r
 
+def pretty_score(ps, rs, fs, label, nsamples):
+    r = '{sep}\n'.format(sep=37*'-')
+    r += '{label}\n#samples:  {nsamples}\n'.format(
+        label=label, nsamples=nsamples)
+    r += '{sep}\n'.format(sep=37*'-')
+    r += '{score:9s}  {mean:5s} \n'.format(
+        score="measure", mean="mean")
+    r += '---------  -----  -----  -----  -----\n'
+    r += '{score:9s}  {mean:.3f} \n'.format(
+        score="precision", mean=ps.mean())
+    r += '{score:9s}  {mean:.3f} \n'.format(
+        score="recall", mean=rs.mean())
+    r += '{score:9s}  {mean:.3f}\n'.format(
+        score="fscore", mean=fs.mean())
+    r += '{sep}\n'.format(sep=37*'-')
+    return r
 
 def pretty_score_nlp(ned_score, coverage_score, label, nfolds, nsamples):
     r = '{sep}\n'.format(sep=37*'-')
@@ -56,6 +72,22 @@ def pretty_score_nlp(ned_score, coverage_score, label, nfolds, nsamples):
     r += '{score:9s}  {mean:.3f}  {std:.3f}  {min:.3f}  {max:.3f}\n'.format(
         score="coverage", mean=coverage_score.mean(), std=coverage_score.std(),
         min=coverage_score.min(), max=coverage_score.max())
+    r += '{sep}\n'.format(sep=37*'-')
+    return r
+
+
+def pretty_score_ned_cov(ned_score, coverage_score, label, nsamples):
+    r = '{sep}\n'.format(sep=37*'-')
+    r += '{label}\n#samples:  {nsamples}\n'.format(
+        label=label, nsamples=nsamples)
+    r += '{sep}\n'.format(sep=37*'-')
+    r += '{score}  {mean}\n'.format(
+        score="measure", mean="value")
+    r += '---------  -----  -----  -----  -----\n'
+    r += '{score}  {mean:.3f}\n'.format(
+        score="NED", mean=ned_score)
+    r += '{score}  {mean:.3f}\n'.format(
+        score="coverage", mean=coverage_score)
     r += '{sep}\n'.format(sep=37*'-')
     return r
 
