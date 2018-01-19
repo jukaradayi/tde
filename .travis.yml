@@ -28,6 +28,7 @@ install:
   - python setup.py build
   - ls /home/travis/build/jukaradayi/tde/tde/substrings/
   - python setup.py develop
+  - python -c "import tde.substrings.ccss"
   - ls /home/travis/build/jukaradayi/tde/tde/substrings/
 
 # command to run tests, e.g. python setup.py test
