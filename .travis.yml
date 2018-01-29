@@ -25,15 +25,14 @@ install:
   #- source activate TDE
   ## Install remaining dependencies with pip 
   #- pip install -r pip-requirements.txt
-  - conda-env create --file requirements.yml
-  - source activate TDE_TEST
+  - conda create -n TDE python=2.7
+  - source activate TDE
+  - pip install -r pip-requirements.txt
   - python setup.py build
-  - ls /home/travis/build/jukaradayi/tde/tde/substrings/
   - python setup.py develop
   - python -c "import tde; import os.path; print( os.path.abspath(tde.__file__))"
   - python -c "import tde.substrings.acss"
   - python -c "import tde.substrings.ccss"
-  - ls /home/travis/build/jukaradayi/tde/tde/substrings/
 
 # command to run tests, e.g. python setup.py test
 script: 

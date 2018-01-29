@@ -1,8 +1,9 @@
 cython>=0.20.1
+pandas
 scipy>=0.14.0
 numpydoc
 mock
-pytest>=2.6
+pytest>=1.8.0
 intervaltree
 ipdb
 joblib
