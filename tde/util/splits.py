@@ -56,11 +56,11 @@ def check_intervals(clsdict, interval_db):
             finterval = interval_db.largest_overlap(fragment.name,
                                                     fragment.interval)
         except KeyError:
-            import ipdb; ipdb.set_trace()
+            #import ipdb; ipdb.set_trace()
             filename_errors.append(fragment)
             continue
         except ValueError:
-            import ipdb; ipdb.set_trace()
+            #import ipdb; ipdb.set_trace()
             interval_errors.append(fragment)
             continue
         # fstart, fend = finterval

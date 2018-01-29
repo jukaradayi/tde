@@ -76,21 +76,35 @@ def pretty_score_nlp(ned_score, coverage_score, label, nfolds, nsamples):
     return r
 
 
-def pretty_score_ned_cov(ned_score, coverage_score, label, nsamples):
+def pretty_score_cov(score, name, label, nsamples):
     r = '{sep}\n'.format(sep=37*'-')
     r += '{label}\n#samples:  {nsamples}\n'.format(
-        label=label, nsamples=nsamples)
+        label="COV", nsamples=nsamples)
     r += '{sep}\n'.format(sep=37*'-')
     r += '{score}  {mean}\n'.format(
         score="measure", mean="value")
     r += '---------  -----  -----  -----  -----\n'
     r += '{score}  {mean:.3f}\n'.format(
-        score="NED", mean=ned_score)
-    r += '{score}  {mean:.3f}\n'.format(
-        score="coverage", mean=coverage_score)
+        score="COVERAGE", mean=ned_score)
     r += '{sep}\n'.format(sep=37*'-')
     return r
 
+def pretty_score_ned(ned_all, ned_w, ned_a,  nsamples):
+    r = '{sep}\n'.format(sep=37*'-')
+    r += '{label}\n#samples:  {nsamples}\n'.format(
+        label="NED", nsamples=nsamples)
+    r += '{sep}\n'.format(sep=37*'-')
+    r += '{score}  {mean}\n'.format(
+        score="measure", mean="value")
+    r += '---------  -----  -----  -----  -----\n'
+    r += '{score}  {mean:.3f}\n'.format(
+        score="NED ALL", mean=ned_score)
+    r += '{score}  {mean:.3f}\n'.format(
+        score="NED WITHIN", mean=ned_score)
+    r += '{score}  {mean:.3f}\n'.format(
+        score="NED ACROSS", mean=ned_score)
+    r += '{sep}\n'.format(sep=37*'-')
+    return r
 
 @contextmanager
 def verb_print(label, verbose=False, when_done=False,

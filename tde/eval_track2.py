@@ -214,8 +214,12 @@ def ned_cov(disc_clsfile, transcription, phn_corpus_file, dest, verbose):
                                     True)
                         
 
+    with open(path.join(dest, 'cov'), 'w') as fid:
+        fid.write(pretty_score_cov(cov, 'COV_all',
+                                    n_overall))
     with open(path.join(dest, 'ned'), 'w') as fid:
-        fid.write(pretty_score_ned_cov(ned_all, cov, 'all',
+        fid.write(pretty_score_ned(ned_all, ned_w,
+                                   ned_a, 
                                     n_overall))
     with open(path.join(dest, 'transcription.txt'), 'w') as fout:
         for line in trs:

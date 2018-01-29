@@ -97,8 +97,66 @@ def create_silence_tree(vad_file):
     return silence_tree
 
 def parse_class_file(class_file, silence_tree, output, verbose=False):
-    """Create list of all the intervals found"""
+    ''' Read All Intervals in Class File, if on interval overlaps
+        with a Silence in the VAD, raise an error and exit.
+    '''
+
+    assert os.path.isfile(class_file), "ERROR: class file not found"
     
+    n_trimmed = 0 # count the number of intervals trimmed
+
+    intervals_list = defaultdict(list)
+    # Read Class file. Keep lines if they're not blank and 
+    # don't start by "Class", because those are the ones 
+    # that contain the found intervals.
+    with open(class_file, 'r') as fin:
+        classes = fin.readlines()
+        output_class = []
+        for line in classes:
+            # skip blanks & "Class [...]"
+            if line.startswith('Class') or len(line.strip('\n')) == 0:
+                output_class.append(line)
+                continue
+            
+            # retrieve file name and interval
+            # ipdb.set_trace()
+            fname, on, off = line.strip('\n').split()
+            #intervals_list[fname].append((float(on), float(off)))
+
+            # Check if interval overlaps with silence
+            ov = silence_tree[fname].search(float(on), float(off))
+
+            # Check in which category the overlap is:
+            if len(ov) > 0 :
+                raise ValueError("ERROR, a Silence overlaps with "
+                        "interval {}. This means the Spoken Term Discovery"
+                        "system didn't use the VAD.\n"
+                        " You can use the script tde/nlp/check_consistency.py"
+                        " to remove the part of the intervals that overlaps with"
+                        " silence.\nThe script will still fail if one interval"
+                        " straddle with silence.".format(
+                            line))
+
+
+
+    print("Check successful, {} intervals were trimmed".format(n_trimmed))
+    
+    ## write class file without Silences
+    #output_name = os.path.join(output,
+    #                           os.path.basename(class_file) + "_no_SIL")
+    #                            
+    #write_new_class_file(output_class, output_name)
+    #return output_name
+    return
+
+def correct_class_file(class_file, silence_tree, output, verbose=False):
+    ''' Read All Intervals in Class File, if on interval overlaps
+        with a Silence in the VAD, check if the interval overlaps 
+        only with a silence at one or both of its ends (1), or it 
+        completely contains a silence (2).
+        In case (2)
+    '''
+
     assert os.path.isfile(class_file), "ERROR: class file not found"
     
     n_trimmed = 0 # count the number of intervals trimmed
@@ -225,8 +283,13 @@ if __name__ == '__main__':
                              """       Class2"""
                              """       [...]"""
                              """       """)
+    parser.add_argument('output', metavar='<OUTPUT>',
+                        help="""Path to the cleaned output""")
+    parser.add_argument('-v', '--verbose', metavar='<VERBOSE>', action="store_true"
+                        help="""enable for more verbose""")
+
     args = parser.parse_args()
     sil_tree = create_silence_tree(args.vad_file)
-    disc_int = parse_class_file(args.class_file, sil_tree)
+    disc_int = correct_class_file(args.class_file, sil_tree, args.output, args.verbose)
     #bad_pairs = check_intervals_foud(disc_int, sil_tree)
     #print bad_pairs

@@ -21,13 +21,15 @@ before_install:
   - conda info -a
 install:
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -n TDE --file conda-requirements.txt 
-  - source activate TDE
-  # Install remaining dependencies with pip 
-  - pip install -r pip-requirements.txt
+  #- conda create -n TDE --file conda-requirements.txt 
+  #- source activate TDE
+  ## Install remaining dependencies with pip 
+  #- pip install -r pip-requirements.txt
+  - conda-env create --file requirements.yml
   - python setup.py build
   - ls /home/travis/build/jukaradayi/tde/tde/substrings/
   - python setup.py develop
+  - python -c "import tde; import os.path; print( os.path.abspath(tde.__file__))"
   - python -c "import tde.substrings.acss"
   - python -c "import tde.substrings.ccss"
   - ls /home/travis/build/jukaradayi/tde/tde/substrings/
