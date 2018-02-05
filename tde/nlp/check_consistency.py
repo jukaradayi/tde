@@ -35,7 +35,6 @@ import argparse
 import ipdb
 from collections import defaultdict
 
-
 def create_silence_tree(vad_file):
     """Read the vad, and create an interval tree
     with the silence intervals.
@@ -85,12 +84,13 @@ def create_silence_tree(vad_file):
 
             # add the gap between previous interval and current
             # interval as "silence"
-            if prev_off > on:
+            if prev_off < on:
                 silences.append((prev_off, on))
             
             # keep previous offset
             prev_off = off
-
+        # add everythin after last phoneme too
+        silences.append((on_max, sys.maxsize))
         # Create interval tree for each file in the vad.
         silence_tree[fname] = intervaltree.IntervalTree.from_tuples(silences)
 
@@ -165,6 +165,7 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
     # Read Class file. Keep lines if they're not blank and 
     # don't start by "Class", because those are the ones 
     # that contain the found intervals.
+    N=0
     with open(class_file, 'r') as fin:
         classes = fin.readlines()
         output_class = []
@@ -184,6 +185,7 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
 
             # Check in which category the overlap is:
             if len(ov) > 0 :
+                #ipdb.set_trace()
                 new_on, new_off = check_intervals_found(ov,
                                                         float(on),
                                                         float(off))
@@ -196,15 +198,27 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
                                                          fname, new_on,
                                                          new_off))
                 on, off = new_on, new_off
+                if on != -10 and off != -10:
+                    # if on==-10 and off == -10, it means the intervals is completely
+                    # contained in a silence, so remove it completely
+                    output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
+
+            else:
+                output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
+
                 
-            if on == -1 and off == -1:
-                raise ValueError("ERROR, a Silence is in the middle of "
-                        "interval {}. This means the system didn't use the "
-                        " VAD. Please treat interval accordingly, so that "
-                        "no more intervals in your class file contain"
-                        " silences and check again.".format(
-                            line))
-            output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
+            #if on == -1 and off == -1:
+            #    raise ValueError("ERROR, a Silence is in the middle of "
+            #            "interval {}. This means the system didn't use the "
+            #            " VAD. Please treat interval accordingly, so that "
+            #            "no more intervals in your class file contain"
+            #            " silences and check again.".format(
+            #                line))
+            if on != -10 and off != -10:
+                # if on==-10 and off == -10, it means the intervals is completely
+                # contained in a silence, so remove it completely
+                output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
+            
 
     print("Check successful, {} intervals were trimmed".format(n_trimmed))
     
@@ -217,9 +231,23 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
 
 def write_new_class_file(output_class, output_name):
     """ Write Class File in which Silences were removed """
+    """ Do a final pass on the edited class file to remove"""
+    """ Classes that now have zero interval """
+    prev_line = "-1"
+    corrected_class = []
+    for line in output_class:
+        if prev_line == "-1":
+            prev_line = line
+            continue
+        if prev_line.startswith('Class') and line == "\n":
+            prev_line = line
+            continue
+        else: 
+            corrected_class.append(prev_line)
+            prev_line = line
 
     with open(output_name, "w") as fout:
-        for line in output_class:
+        for line in corrected_class:
             fout.write(u'{}'.format(line))
 
 def check_intervals_found(ov, on, off):
@@ -255,16 +283,18 @@ def check_intervals_found(ov, on, off):
     """
     for SIL in ov:
         SIL_on, SIL_off = SIL[0], SIL[1]
-
         if (on <= SIL_on) and (off >= SIL_off):
             # means the intervals found completely contains a silence,
             # which means the system didn't take into account the VAD.
             # Leave the decision to the user about this interval.
             return -1, -1
-        elif (on <= SIL_on) and (off < SIL_off):
+        elif (on <= SIL_on) and (off > SIL_on):
             return on, SIL_on
-        elif (on > SIL_on) and (off >= SIL_off):
+        elif (on < SIL_off) and (off >= SIL_off):
             return SIL_off, off
+        elif (on >= SIL_on) and (off <= SIL_off):
+            # means the intervals is all silence. Remove it
+            return -10, -10
 
 
 if __name__ == '__main__':
@@ -285,7 +315,7 @@ if __name__ == '__main__':
                              """       """)
     parser.add_argument('output', metavar='<OUTPUT>',
                         help="""Path to the cleaned output""")
-    parser.add_argument('-v', '--verbose', metavar='<VERBOSE>', action="store_true"
+    parser.add_argument('-v', '--verbose', action="store_true",
                         help="""enable for more verbose""")
 
     args = parser.parse_args()

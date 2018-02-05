@@ -9,6 +9,7 @@ from itertools import izip
 
 import numpy as np
 from joblib import Parallel, delayed
+import ipdb
 
 VERSION = "0.2.1"
 
@@ -139,6 +140,8 @@ def _token_type_sub(clsdict, wrd_corpus, names, label, verbose, n_jobs):
             .format(sum(map(len, names)), len(names), label)
     with verb_print('  token/type ({0}): calculating scores'
                              .format(label), verbose, False, True, False):
+        print wrd_corpus
+        ipdb.set_trace()
         pto, rto, pty, rty = izip(*(et(clsdict.restrict(ns, False),
                                        wrd_corpus.restrict(ns))
                                     for ns in names))
@@ -205,7 +208,7 @@ def boundary(disc_clsdict, corpus, fragments_cross,
 def ned_cov(disc_clsfile, transcription, phn_corpus_file, dest, verbose):
     ''' wrapper around the nlp.compute_ned function, computes ned'''
     ''' and write output using pretty_score function '''
-    ned_all, w, a, trs = ned_from_class(disc_clsfile,
+    ned_all, ned_w, ned_a, trs = ned_from_class(disc_clsfile,
                                         transcription,
                                         phn_corpus_file,
                                         False)
@@ -251,9 +254,12 @@ if __name__ == '__main__':
             description='Evaluate spoken term discovery on the english dataset',
             epilog="""Example usage:
 
-$ ./english_eval2 my_sample.classes resultsdir/
+\t$ ./english_eval2 my_sample.classes /home/user/resource_dir corpus_1 resultsdir/
 
-evaluates STD output `my_sample.classes` on the english dataset and stores the
+where /home/user/resource_dir contains corpus_1.phn (phone transcription), 
+corpus_1.wrd (word transcription), and corpus_1.vad (vad).
+
+This command evaluates STD output `my_sample.classes` and stores the
 output in `resultsdir/`.
 
 Classfiles must be formatted like this:
@@ -265,19 +271,42 @@ fileID starttime endtime
 
 Class 2 (optional_name)
 fileID starttime endtime
+
+Transcriptions must be formatted like this:
+fileID1 onset offset word/phone
+fileID1 onset offset word/phone
+fileID2 onset offset word/phone
+...
+
+and VAD : 
+fileID1 onset offset
+fileID1 onset offset
+fileID2 onset offset
+...
 ...
 """)
-        parser.add_argument(
-                'corpus', metavar='CORPUS',
-                choices=['english', 'mandarin', 'french',
-                         'buckeye', 'xitsonga', 'other'],
-                help='name of the corpus you are evaluating. Choices are '
-                     '"english", "mandarin", "french", "buckeye", '
-                     '"xitsonga" and "other" if you want to use '
-                     ' your own corpus')
+        #parser.add_argument(
+        #        'corpus', metavar='CORPUS',
+        #        choices=['english', 'mandarin', 'french',
+        #                 'buckeye', 'xitsonga', 'other'],
+        #        help='name of the corpus you are evaluating. Choices are '
+        #             '"english", "mandarin", "french", "buckeye", '
+        #             '"xitsonga" and "other" if you want to use '
+        #             ' your own corpus')
         parser.add_argument('disc_clsfile', metavar='DISCCLSFILE',
                             nargs=1,
                             help='discovered classes')
+        parser.add_argument('trs',
+                            metavar='TRANSCRIPTION',
+                            default='None',
+                            nargs=2,
+                            help='Folder where the phone and word'
+                            'transcriptions and vad are, and the name of'
+                            ' the files. Example of use is:\n'
+                            '\t../bin/resources mandarin\n'
+                            'where, in ../bin/resources, there is a'
+                            ' mandarin.phn, mandarin.wrd and mandarin.vad')
+
         parser.add_argument('outdir', metavar='DESTINATION',
                             nargs=1,
                             help='location for the evaluation results')
@@ -287,16 +316,6 @@ fileID starttime endtime
                             default=True,
                             help='force truncation of discovered fragments '
                             'outside of splits')
-        parser.add_argument('-t', '--transcription',
-                            metavar='TRANSCRIPTION',
-                            default='None',
-                            nargs=2,
-                            help='if corpus choice if "other", -t is needed to'
-                            'get the phone and word transcriptions, as well as'
-                            'the VAD. Example of use is:\n'
-                            '\t-t ../bin/resources mandarin\n'
-                            'where, in ../bin/resources, there is a'
-                            ' mandarin.phn, mandarin.wrd and mandarin.vad')
         parser.add_argument('-m', '--measures',
                             action='store',
                             nargs='*',
@@ -325,36 +344,19 @@ fileID starttime endtime
     n_jobs = args['n_jobs']
 
     disc_clsfile = args['disc_clsfile'][0]
-    dest = args['outdir'][0]
 
-    if getattr(sys, 'frozen', False):
-        # frozen
-        rdir = path.dirname(sys.executable)
-        resource_dir = path.join(rdir, '../bin/resources')
-    else:
-        # unfrozen
-        rdir = path.dirname(path.realpath(__file__))
-        resource_dir = path.join(rdir, '../bin/resources')
+    dest = args['outdir'][0]
+    
+    resource_dir = args['trs'][0]
+
+    corpus = args['trs'][1]
     
     # if corpus is "other", change resource_dir to get the transcriptions/vad
-    if args['corpus'] == 'other':
-        assert os.path.isdir(args['transcription'][0]),\
-               'ERROR: Corpus choice is "other",'\
-               'but transcription folder does not exist'
-        resource_dir = args['transcription'][0]
-        args['corpus'] = args['transcription'][1]
 
-    phn_corpus_file   = path.join(resource_dir, '{}.phn'.format(args['corpus']))
-    wrd_corpus_file   = path.join(resource_dir, '{}.wrd'.format(args['corpus']))
-    vad_file          = path.join(resource_dir, '{}.vad'.format(args['corpus']))
-
-    if verbose:
-        print '{0}_eval2 version {1}'.format(args['corpus'], VERSION)
-        print '---------------------------'
-        print 'dataset:     {0}'.format(args['corpus'])
-        print 'inputfile:   {0}'.format(disc_clsfile)
-        print 'destination: {0}'.format(dest)
-        print
+    phn_corpus_file   = path.join(resource_dir, '{}.phn'.format(corpus))
+    wrd_corpus_file   = path.join(resource_dir, '{}.wrd'.format(corpus))
+    vad_file          = path.join(resource_dir, '{}.vad'.format(corpus))
+    print vad_file
 
     if verbose:
         print banner('LOADING FILES')
@@ -386,11 +388,11 @@ fileID starttime endtime
     # they are trimmed. If intervals that contain silences are found,
     # an error is thrown and the evaluation breaks.
     sil_tree = create_silence_tree(vad_file)
-    disc_clsfile = parse_class_file(disc_clsfile, sil_tree, dest, verbose)
+    parse_class_file(disc_clsfile, sil_tree, dest, verbose)
 
     # load discovered intervals and gold intervals
     truncate = args['truncate']
-
+    truncate = False
     disc_clsdict = load_disc(disc_clsfile, phn_corpus, vad_file,
                              truncate, verbose)
 
