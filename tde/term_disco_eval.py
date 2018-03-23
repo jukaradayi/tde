@@ -32,6 +32,15 @@ from tde.measures.token_type import evaluate_token_type
 #def _load_classes(fname, corpus, split_mapping=None):
 #    return load_classes_txt(fname, corpus, split=split_mapping)
 
+def load_names(fname): 
+    """ read vad and create list of all the file names in the corpus"""
+    all_names = set()
+    with open(fname, 'r') as fin:
+        vad = fin.readlines()
+        for line in vad:
+            spkr, _, _ = line.strip('\n').split(' ')
+            all_names.add(spkr)
+    return list(all_names)
 
 def load_disc(fname, corpus, split_file, truncate, verbose):
     with verb_print('  loading discovered classes',
@@ -140,8 +149,8 @@ def _token_type_sub(clsdict, wrd_corpus, names, label, verbose, n_jobs):
             .format(sum(map(len, names)), len(names), label)
     with verb_print('  token/type ({0}): calculating scores'
                              .format(label), verbose, False, True, False):
-        print wrd_corpus
-        ipdb.set_trace()
+        #print wrd_corpus
+        #ipdb.set_trace()
         pto, rto, pty, rty = izip(*(et(clsdict.restrict(ns, False),
                                        wrd_corpus.restrict(ns))
                                     for ns in names))
@@ -322,7 +331,7 @@ fileID2 onset offset
                             dest='measures',
                             default=[],
                             choices=['boundary', 'group', 
-                                     'token/type'],
+                                     'token/type', 'nlp'],
                             help='select individual measures to perform')
         parser.add_argument('-v', '--verbose',
                             action='store_true',
@@ -377,7 +386,8 @@ fileID2 onset offset
         #                             multiple=False)
         intervals_vad = [load_split(vad_file,
                                      multiple=False)]
-
+    # get list of file names from vad: 
+    #    names = load_names(vad_file)
     try:
         os.makedirs(dest)
     except OSError:
@@ -392,7 +402,8 @@ fileID2 onset offset
 
     # load discovered intervals and gold intervals
     truncate = args['truncate']
-    truncate = False
+    #truncate = False
+    truncate = True
     disc_clsdict = load_disc(disc_clsfile, phn_corpus, vad_file,
                              truncate, verbose)
 
