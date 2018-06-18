@@ -76,7 +76,7 @@ def pretty_score_nlp(ned_score, coverage_score, label, nfolds, nsamples):
     return r
 
 
-def pretty_score_cov(score, name, label, nsamples):
+def pretty_score_cov(score, nsamples):
     r = '{sep}\n'.format(sep=37*'-')
     r += '{label}\n#samples:  {nsamples}\n'.format(
         label="COV", nsamples=nsamples)
@@ -98,11 +98,11 @@ def pretty_score_ned(ned_all, ned_w, ned_a,  nsamples):
         score="measure", mean="value")
     r += '---------  -----  -----  -----  -----\n'
     r += '{score}  {mean:.3f}\n'.format(
-        score="NED ALL", mean=ned_score)
+        score="NED ALL", mean=ned_all)
     r += '{score}  {mean:.3f}\n'.format(
-        score="NED WITHIN", mean=ned_score)
+        score="NED WITHIN", mean=ned_w)
     r += '{score}  {mean:.3f}\n'.format(
-        score="NED ACROSS", mean=ned_score)
+        score="NED ACROSS", mean=ned_a)
     r += '{sep}\n'.format(sep=37*'-')
     return r
 
