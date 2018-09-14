@@ -51,7 +51,7 @@ def create_silence_tree(vad_file):
     """
 
     assert os.path.isfile(vad_file), "ERROR: VAD file doesn't exist, check path"
-    
+
     vad = defaultdict(list)
     # Read vad and create dict {file: [intervals]}
     with open(vad_file, 'r') as fin:
@@ -86,7 +86,7 @@ def create_silence_tree(vad_file):
             # interval as "silence"
             if prev_off < on:
                 silences.append((prev_off, on))
-            
+
             # keep previous offset
             prev_off = off
         # add everythin after last phoneme too
@@ -102,7 +102,7 @@ def parse_class_file(class_file, silence_tree, output, verbose=False):
     '''
 
     assert os.path.isfile(class_file), "ERROR: class file not found"
-    
+
     n_trimmed = 0 # count the number of intervals trimmed
 
     intervals_list = defaultdict(list)
@@ -117,7 +117,7 @@ def parse_class_file(class_file, silence_tree, output, verbose=False):
             if line.startswith('Class') or len(line.strip('\n')) == 0:
                 output_class.append(line)
                 continue
-            
+
             # retrieve file name and interval
             # ipdb.set_trace()
             fname, on, off = line.strip('\n').split()
@@ -140,7 +140,7 @@ def parse_class_file(class_file, silence_tree, output, verbose=False):
 
 
     print("Check successful, {} intervals were trimmed".format(n_trimmed))
-    
+
     ## write class file without Silences
     #output_name = os.path.join(output,
     #                           os.path.basename(class_file) + "_no_SIL")
@@ -158,7 +158,7 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
     '''
 
     assert os.path.isfile(class_file), "ERROR: class file not found"
-    
+
     n_trimmed = 0 # count the number of intervals trimmed
 
     intervals_list = defaultdict(list)
@@ -174,7 +174,7 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
             if line.startswith('Class') or len(line.strip('\n')) == 0:
                 output_class.append(line)
                 continue
-            
+
             # retrieve file name and interval
             # ipdb.set_trace()
             fname, on, off = line.strip('\n').split()
@@ -198,7 +198,9 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
                                                          fname, new_on,
                                                          new_off))
                 on, off = new_on, new_off
-                if on != -10 and off != -10:
+                #if on != -10 and off != -10:
+                if on >= 0 and off >= 0:
+
                     # if on==-10 and off == -10, it means the intervals is completely
                     # contained in a silence, so remove it completely
                     output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
@@ -206,7 +208,7 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
             else:
                 output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
 
-                
+
             #if on == -1 and off == -1:
             #    raise ValueError("ERROR, a Silence is in the middle of "
             #            "interval {}. This means the system didn't use the "
@@ -214,18 +216,18 @@ def correct_class_file(class_file, silence_tree, output, verbose=False):
             #            "no more intervals in your class file contain"
             #            " silences and check again.".format(
             #                line))
-            if on != -10 and off != -10:
-                # if on==-10 and off == -10, it means the intervals is completely
-                # contained in a silence, so remove it completely
-                output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
-            
+            #if on != -10 and off != -10:
+            #    # if on==-10 and off == -10, it means the intervals is completely
+            #    # contained in a silence, so remove it completely
+            #    output_class.append(" ".join([fname, str(on), str(off)]) + '\n')
+
 
     print("Check successful, {} intervals were trimmed".format(n_trimmed))
-    
+
     # write class file without Silences
     output_name = os.path.join(output,
                                os.path.basename(class_file) + "_no_SIL")
-                                
+
     write_new_class_file(output_class, output_name)
     return output_name
 
@@ -233,6 +235,7 @@ def write_new_class_file(output_class, output_name):
     """ Write Class File in which Silences were removed """
     """ Do a final pass on the edited class file to remove"""
     """ Classes that now have zero interval """
+    #ipdb.set_trace()
     prev_line = "-1"
     corrected_class = []
     for line in output_class:
@@ -242,13 +245,16 @@ def write_new_class_file(output_class, output_name):
         if prev_line.startswith('Class') and line == "\n":
             prev_line = line
             continue
-        else: 
+        else:
             corrected_class.append(prev_line)
             prev_line = line
 
     with open(output_name, "w") as fout:
         for line in corrected_class:
             fout.write(u'{}'.format(line))
+        # Writing empty line at the end of the file
+        fout.write('\n')
+
 
 def check_intervals_found(ov, on, off):
     """Check that None of the intervals found overlap
@@ -281,6 +287,7 @@ def check_intervals_found(ov, on, off):
                      that indicate the intervals that overlap with silence 
                      (and the silences they overlap with)
     """
+    #ipdb.set_trace()
     for SIL in ov:
         SIL_on, SIL_off = SIL[0], SIL[1]
         if (on <= SIL_on) and (off >= SIL_off):
@@ -289,13 +296,17 @@ def check_intervals_found(ov, on, off):
             # Leave the decision to the user about this interval.
             return -1, -1
         elif (on <= SIL_on) and (off > SIL_on):
-            return on, SIL_on
+            #return on, SIL_on
+            off = SIL_on
+            continue
         elif (on < SIL_off) and (off >= SIL_off):
-            return SIL_off, off
+            #return SIL_off, off
+            on = SIL_off
+            continue
         elif (on >= SIL_on) and (off <= SIL_off):
             # means the intervals is all silence. Remove it
             return -10, -10
-
+    return on, off
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
