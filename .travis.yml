@@ -30,10 +30,8 @@ install:
   - pip install -r pip-requirements.txt
   - python setup.py build
   - python setup.py develop
-  - python -c "import tde; import os.path; print( os.path.abspath(tde.__file__))"
-  - python -c "import tde.substrings.acss"
-  - python -c "import tde.substrings.ccss"
 
 # command to run tests, e.g. python setup.py test
 script: 
+ - conda env export
  - pytest tests/
