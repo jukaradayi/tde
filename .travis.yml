@@ -21,8 +21,8 @@ before_install:
   - conda info -a
 install:
   # Replace dep1 dep2 ... with your dependencies
-  #- conda create -n TDE --file conda-requirements.txt 
-  #- source activate TDE
+  - conda create -n TDE --file conda-requirements.txt 
+  - source activate TDE
   ## Install remaining dependencies with pip 
   #- pip install -r pip-requirements.txt
   #- conda create -n TDE python=2.7
