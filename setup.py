@@ -5,6 +5,7 @@
 
 import os
 import numpy
+from sysconfig import get_paths
 
 from Cython.Distutils import build_ext
 
@@ -29,18 +30,22 @@ test_requirements = [
 np_lib = os.path.dirname(numpy.__file__)
 np_inc = numpy.get_include()
 
+# Get include dir for cython compiler
+info = get_paths()
+include = info['include']
+
 extensions = [Extension('tde.substrings.ccss',
                         sources=['tde/substrings/ccss.pyx'],
                         extra_compile_args=['-shared', '-pthread', '-fPIC',
                                             '-fwrapv', '-O3', '-Wall',
                                             '-fno-strict-aliasing'],
-                        include_dirs=['/usr/include/python2.7', np_inc]),
+                        include_dirs=[include, np_inc]),
               Extension('tde.substrings.levenshtein',
                         sources=['tde/substrings/levenshtein.pyx'],
                         extra_compile_args=['-shared', '-pthread', '-fPIC',
                                             '-fwrapv', '-O3', '-Wall',
                                             '-fno-strict-aliasing'],
-                        include_dirs=['/usr/include/python2.7', np_inc])]
+                        include_dirs=[include, np_inc])]
 
 setup(
     name='tde',
