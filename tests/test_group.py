@@ -1,8 +1,12 @@
 from tde.util.reader import load_split, load_corpus_txt
-from tde.eval_track2 import _group_sub, load_disc 
+from tde.eval_track2 import _group_sub, load_disc
 from tde.measures.group import *
 from conftest import vad, word, disc_cls
 import numpy
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 def test_group():
